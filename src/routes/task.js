@@ -1,5 +1,6 @@
 const express = require('express')
 const Task = require('../models/task')
+const Log = require('../models/log')
 const auth = require('../middleware/auth')
 const router = new express.Router()
 
@@ -8,9 +9,13 @@ router.post('/tasks', auth, async (req, res) => {
         ...req.body,
         owner: req.user._id
     })
-
     try {
         await task.save()
+
+        // insert log
+        const log = new Log()
+        await log.insertToLog('task', 'created', task, req.user._id)
+
         res.status(201).send(task)
     } catch (e) {
         res.status(400).send(e)
@@ -54,6 +59,11 @@ router.get('/tasks/:id', auth, async (req, res) => {
         if (!task) {
            return res.status(404).send()
         }
+
+        // insert log
+        const log = new Log()
+        await log.insertToLog('task', 'read', task, req.user._id)
+
         res.send(task)
     } catch (e) {
         res.status(500).send()
@@ -80,6 +90,11 @@ router.patch('/tasks/:id', auth, async (req, res) => {
 
         updates.forEach((update) => task[update] = req.body[update])
         await task.save()
+
+        // insert log
+        const log = new Log()
+        await log.insertToLog('task', 'updated', task, req.user._id)
+
         res.send(task)
     } catch (e) {
         res.status(400).send(e)
@@ -92,6 +107,11 @@ router.delete('/tasks/:id', auth, async (req, res) => {
         if (!task) {
             return res.status(404).send()
         }
+
+        // insert log
+        const log = new Log()
+        await log.insertToLog('task', 'deleted', task, req.user._id)
+
         res.send(task)
     } catch (e) {
         res.status(500).send()

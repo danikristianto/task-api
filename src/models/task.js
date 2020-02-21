@@ -19,6 +19,11 @@ const taskSchema = mongoose.Schema({
     timestamps: true
 })
 
+taskSchema.virtual('logs',{
+    ref: 'Log',
+    localField: '_id',
+    foreignField: 'foreign'
+})
 
 const Task = mongoose.model('Task', taskSchema)
 
